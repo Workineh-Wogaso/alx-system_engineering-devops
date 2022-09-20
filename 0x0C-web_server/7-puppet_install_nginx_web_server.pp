@@ -1,19 +1,24 @@
-# installs and configs nginx server
+# Puppet manifests that configures Nginx server
 
+#Install nginx
 package { 'nginx':
-  ensure => 'installed',
+    ensure => installed,
 }
 
-file { 'index.nginx-debian.html':
-  path    => '/var/www/html/index.nginx-debian.html',
-  content => 'Hello World!',
+#Create a page that contains the string Hellow World
+file { '/var/www/html/index.html':
+    content =>  'Hello World!',
 }
 
-exec { 'config':
-  command  => 'sed -i "s/server_name _;/server_name _;\n\trewrite ^\/redirect_me https:\/\/www.youtube.com/watch?v=TfgBHC5gvTI permanent;/" /etc/nginx/sites-available/default',
-  provider => 'shell',
+# Configure Nginx server so that /redirect_me is redirecting to another page.
+file_line { 'redirect 301 Moved Permanently':
+    path  => '/etc/nginx/sites-available/default',
+    after => 'listen 80 default_server',
+    line  => 'rewrite ^/redirect_me https://www.youtube.com/watch?v=QH2-TGUlwu4 permanent;',
 }
-exec { 'start':
-  command  => 'sudo service nginx restart',
-  provider => 'shell',
+
+# Equivalent to the command service nginx restart
+service { 'nginx':
+    ensure  => running,
+    require => Package['nginx'],
 }
